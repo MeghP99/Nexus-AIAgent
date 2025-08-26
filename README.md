@@ -62,7 +62,6 @@ User Query → Intent Analysis → Tool Selection → Parallel Execution → Int
 |-----------|------------|---------|
 | **AI Engine** | Google Gemini 2.5 Flash | Natural language processing & reasoning |
 | **Web Framework** | Streamlit | Interactive web application |
-| **Agent Framework** | LangChain | AI agent orchestration |
 | **Vector Database** | Pinecone | Semantic document search |
 | **Web Search** | Brave Search API | Current information retrieval |
 | **Academic Search** | ArXiv API | Research paper access |
