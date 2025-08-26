@@ -15,13 +15,9 @@ This project showcases advanced **AI agent architecture** with sophisticated **t
 ### 🎯 **Key Achievements**
 
 - **🤖 Intelligent Agent System**: LLM-powered decision engine that automatically selects optimal tools
-- **🔧 Modular Architecture**: Clean, SOLID-principle-based design with 85% code reduction
 - **🧠 Multi-Modal Research**: Seamlessly combines academic papers, web search, and calculations
-- **⚡ Real-Time Processing**: Live step-by-step reasoning display with beautiful UI
-- **🏗️ Enterprise-Grade**: Production-ready architecture with comprehensive error handling
 
 ---
-
 ## 🚀 **Core Features**
 
 ### **🔍 Intelligent Tool Selection**
@@ -36,11 +32,6 @@ The agent analyzes each query and automatically determines the best approach:
 User Query → Intent Analysis → Tool Selection → Parallel Execution → Intelligent Synthesis → Response
 ```
 
-### **🎨 Modern User Interface**
-- **Real-time processing steps** with visual feedback
-- **Interactive paper cards** with metadata and links
-- **Expandable context views** showing source material
-- **Responsive design** with professional styling
 
 ---
 
@@ -181,39 +172,10 @@ CONFIDENCE_THRESHOLD=0.8
    🧮 Calculator → ((2.5)^(1/3) - 1) * 100 = 35.72%
    📊 Result → 35.72% CAGR with explanation
 ```
-
-### **Hybrid Research Query**
-```
-💬 "How does GPT-4's architecture compare to recent alternatives, and what are the computational costs?"
-
-🤖 Agent Process:
-   🔍 Multi-dimensional query detected
-   📚 ArXiv search → Architecture papers
-   🌐 Web search → Computational benchmarks
-   🧮 Calculator → Cost comparisons
-   🧠 Synthesis → Detailed comparison with metrics
 ```
 
 ---
 
-## 🔧 **Advanced Features**
-
-### **🎯 Custom Prompt Engineering**
-- **No out-of-the-box prompts** - all custom-designed for optimal performance
-- **Context-aware prompting** based on query type and available tools
-- **Dynamic prompt generation** for multi-tool scenarios
-
-### **🛡️ Robust Error Handling**
-- **Graceful degradation** when tools are unavailable
-- **Automatic fallback** to alternative information sources
-- **Detailed error reporting** for debugging and monitoring
-
-### **📊 Real-Time Monitoring**
-- **Live processing steps** with visual indicators
-- **Tool execution timing** and success rates
-- **Source attribution** for all information used
-
----
 
 ## 🚀 **Future Enhancements**
 
@@ -271,29 +233,3 @@ This project demonstrates expertise in:
 ## 📝 **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🤝 **Contributing**
-
-Contributions are welcome! Please read the [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
-
----
-
-## 📞 **Contact**
-
-**[Your Name]** - *AI/ML Engineer*
-
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-blue.svg)](https://linkedin.com/in/your-profile)
-[![Portfolio](https://img.shields.io/badge/Portfolio-Visit-green.svg)](https://your-portfolio.com)
-[![Email](https://img.shields.io/badge/Email-Contact-red.svg)](mailto:your.email@example.com)
-
----
-
-<div align="center">
-
-**⭐ If you found this project impressive, please give it a star! ⭐**
-
-*Showcasing modern AI agent architecture with production-ready engineering practices*
-
-</div>
