@@ -1,0 +1,13 @@
+langchain-google-genai
+langchain-openai
+langchain-pinecone
+langchain-community
+langgraph
+python-dotenv
+arxiv
+pinecone-client>=3.0.0
+streamlit
+nest-asyncio
+langchain-text-splitters
+PyMuPDF==1.23.28
+
