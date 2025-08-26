@@ -32,7 +32,7 @@ class BraveSearchTool(BaseTool):
             print(f"[BraveSearchTool] Warning: Could not initialize Brave retriever: {e}")
             return False
     
-    def execute(self, query: str, max_results: int = 5) -> Dict[str, Any]:
+    def execute(self, query: str, max_results: int = 20) -> Dict[str, Any]:
         """Execute Brave search and return results.
         
         Args:

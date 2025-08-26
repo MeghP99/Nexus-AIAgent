@@ -82,7 +82,7 @@ class AgenticResearchApp:
                 self._generate_assistant_response(prompt)
     
     def _generate_assistant_response(self, prompt: str):
-        """Generate and display assistant response.
+        """Generate and display assistant response with real-time step updates.
         
         Args:
             prompt: User's input prompt
@@ -91,37 +91,46 @@ class AgenticResearchApp:
         steps_placeholder = st.empty()
         message_placeholder = st.empty()
         
+        # Track accumulated steps for real-time display
+        accumulated_steps = []
+        
         try:
-            # Execute the research process
-            research_result = self.agent.research(prompt)
-            
-            # Display processing steps
-            step_messages = research_result.get("step_messages", [])
-            if step_messages:
-                steps_html = self.ui.display_steps_container(step_messages)
-                steps_placeholder.markdown(steps_html, unsafe_allow_html=True)
-            
-            # Extract results
-            final_response = research_result.get("final_response", 
-                                                "Sorry, I couldn't find an answer to your query.")
-            retrieved_context = research_result.get("context", [])
-            paper_metadata = research_result.get("paper_metadata", [])
-            
-            # Display the main response
-            message_placeholder.markdown(final_response)
-            
-            # Display context and paper metadata
-            self.ui.render_context_expander(retrieved_context)
-            self.ui.render_paper_metadata(paper_metadata)
-            
-            # Store message in session state
-            st.session_state.messages.append({
-                "role": "assistant",
-                "content": final_response,
-                "steps": step_messages,
-                "context": retrieved_context,
-                "paper_metadata": paper_metadata
-            })
+            # Execute the research process with streaming
+            for update in self.agent.research_stream(prompt):
+                if update["type"] == "step":
+                    # Add step to accumulated list
+                    step = update["step"]
+                    accumulated_steps.append(step)
+                    
+                    # Update steps display in real-time
+                    steps_html = self.ui.display_steps_container(accumulated_steps)
+                    steps_placeholder.markdown(steps_html, unsafe_allow_html=True)
+                    
+                elif update["type"] == "final":
+                    # Extract final results
+                    research_result = update["result"]
+                    final_response = research_result.get("final_response", 
+                                                        "Sorry, I couldn't find an answer to your query.")
+                    retrieved_context = research_result.get("context", [])
+                    paper_metadata = research_result.get("paper_metadata", [])
+                    step_messages = research_result.get("step_messages", [])
+                    
+                    # Display the main response
+                    message_placeholder.markdown(final_response)
+                    
+                    # Display context and paper metadata
+                    self.ui.render_context_expander(retrieved_context)
+                    self.ui.render_paper_metadata(paper_metadata)
+                    
+                    # Store message in session state
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": final_response,
+                        "steps": step_messages,
+                        "context": retrieved_context,
+                        "paper_metadata": paper_metadata
+                    })
+                    break
         
         except Exception as e:
             error_message = self.ui.render_error_message(e)

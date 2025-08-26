@@ -18,6 +18,7 @@ class ResearchAgent:
         """Initialize the research agent."""
         self.logger = logging.getLogger(__name__)
         self._step_messages: List[Dict[str, str]] = []
+        self._step_callback = None
         
         self._setup_llm()
         self._setup_tools()
@@ -60,8 +61,13 @@ class ResearchAgent:
     
     def add_step_message(self, status: str, message: str):
         """Add a step message for UI display."""
-        self._step_messages.append({"status": status, "message": message})
+        step = {"status": status, "message": message}
+        self._step_messages.append(step)
         self.logger.info(f"[{status.upper()}] {message}")
+        
+        # Call callback if set (for real-time updates)
+        if self._step_callback:
+            self._step_callback(step)
     
     def clear_step_messages(self):
         """Clear step messages for new query."""
@@ -303,6 +309,87 @@ class ResearchAgent:
             "paper_metadata": self._extract_metadata_from_results(tool_results),
             "context": self._extract_context_from_results(tool_results)
         }
+    
+    def research_stream(self, user_question: str):
+        """Generator version of research that yields step updates in real-time.
+        
+        Args:
+            user_question: The user's research question
+            
+        Yields:
+            Dict containing step updates or final result
+        """
+        # Clear previous step messages
+        self.clear_step_messages()
+        
+        # Queue to collect yielded steps
+        step_queue = []
+        
+        # Set up callback to collect step updates
+        def step_collector(step):
+            step_queue.append(step)
+        
+        self._step_callback = step_collector
+        
+        try:
+            # Step 1: Analyze question and decide on tool usage
+            self.add_step_message("checking", "🚀 Starting intelligent research process...")
+            # Yield any collected steps
+            for step in step_queue:
+                yield {"type": "step", "step": step}
+            step_queue.clear()
+            
+            tool_decision = self._decide_tool_use(user_question)
+            # Yield any collected steps
+            for step in step_queue:
+                yield {"type": "step", "step": step}
+            step_queue.clear()
+            
+            # Step 2: Execute tools if needed
+            tool_results = []
+            if tool_decision.get("use_tools", False):
+                reasoning = tool_decision.get("reasoning", "")
+                self.add_step_message("checking", f"💭 Strategy: {reasoning}")
+                # Yield any collected steps
+                for step in step_queue:
+                    yield {"type": "step", "step": step}
+                step_queue.clear()
+                
+                tool_results = self._execute_tools(tool_decision)
+                # Yield any collected steps
+                for step in step_queue:
+                    yield {"type": "step", "step": step}
+                step_queue.clear()
+            else:
+                reasoning = tool_decision.get("reasoning", "")
+                self.add_step_message("completed", f"✅ Using existing knowledge: {reasoning}")
+                # Yield any collected steps
+                for step in step_queue:
+                    yield {"type": "step", "step": step}
+                step_queue.clear()
+            
+            # Step 3: Synthesize final response
+            final_response = self._synthesize_response(user_question, tool_results)
+            # Yield any collected steps
+            for step in step_queue:
+                yield {"type": "step", "step": step}
+            step_queue.clear()
+            
+            # Yield final result
+            yield {
+                "type": "final",
+                "result": {
+                    "final_response": final_response,
+                    "step_messages": self.get_step_messages(),
+                    "tool_results": tool_results,
+                    "paper_metadata": self._extract_metadata_from_results(tool_results),
+                    "context": self._extract_context_from_results(tool_results)
+                }
+            }
+            
+        finally:
+            # Clean up callback
+            self._step_callback = None
     
     def get_available_tools(self) -> List[str]:
         """Get list of available tools."""
