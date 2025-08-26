@@ -1,4 +1,13 @@
-# Python
+# Agentic Research Assistant - Git Ignore File
+
+# ===== SENSITIVE FILES =====
+.env
+.env.local
+.env.production
+*.key
+secrets.json
+
+# ===== PYTHON =====
 __pycache__/
 *.py[cod]
 *$py.class
@@ -16,34 +25,66 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
 
-# Virtual Environment
+# ===== VIRTUAL ENVIRONMENTS =====
+.env/
+.venv/
+env/
 venv/
 ENV/
-env/
-.venv/
+env.bak/
+venv.bak/
 
-# Environment variables
-.env
-.env.local
-
-# IDE
+# ===== IDE & EDITORS =====
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# Project specific
-data/
-*.log
 .DS_Store
+Thumbs.db
 
-# Pinecone
-pinecone.db/
+# ===== JUPYTER NOTEBOOKS =====
+.ipynb_checkpoints
 
-# Streamlit
-.streamlit/secrets.toml
+# ===== TESTING =====
+.coverage
+.pytest_cache/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# ===== MYPY =====
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ===== DATA & CACHE =====
+data/papers/
+data/cache/
+*.log
+logs/
+temp/
+tmp/
+
+# ===== STREAMLIT =====
+.streamlit/
+
+# ===== VECTOR DATABASES =====
+*.index
+*.faiss
+chroma_db/
+
+# ===== MISC =====
+*.bak
+*.tmp
+*.temp
+.cache/

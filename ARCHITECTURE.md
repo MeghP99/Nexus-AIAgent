@@ -57,7 +57,6 @@ class BaseTool(ABC):
 #### Key Features
 - **Smart Tool Selection**: LLM-based decision making
 - **Multi-tool Coordination**: Can use multiple tools for comprehensive answers
-- **Custom Prompts**: No out-of-the-box prompts (per user preference)
 - **Error Handling**: Graceful fallbacks and informative error messages
 
 ### 3. **UI Module** (`src/ui/`)
