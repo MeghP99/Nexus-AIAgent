@@ -82,17 +82,20 @@ class AgenticResearchApp:
                 self._generate_assistant_response(prompt)
     
     def _generate_assistant_response(self, prompt: str):
-        """Generate and display assistant response with real-time step updates.
+        """Generate and display assistant response with real-time step updates and streaming text.
         
         Args:
             prompt: User's input prompt
         """
         # Create placeholders for real-time updates
         steps_placeholder = st.empty()
+        tool_results_placeholder = st.empty()
         message_placeholder = st.empty()
         
-        # Track accumulated steps for real-time display
+        # Track accumulated steps, tool results, and response for real-time display
         accumulated_steps = []
+        accumulated_tool_results = []
+        accumulated_response = ""
         
         try:
             # Execute the research process with streaming
@@ -103,8 +106,26 @@ class AgenticResearchApp:
                     accumulated_steps.append(step)
                     
                     # Update steps display in real-time
-                    steps_html = self.ui.display_steps_container(accumulated_steps)
-                    steps_placeholder.markdown(steps_html, unsafe_allow_html=True)
+                    steps_text = self.ui.display_steps_container(accumulated_steps)
+                    steps_placeholder.markdown(steps_text)
+                    
+                elif update["type"] == "tool_result":
+                    # Add tool result to accumulated list
+                    tool_result = update["result"]
+                    accumulated_tool_results.append(tool_result)
+                    
+                    # Update tool results display in real-time using a container
+                    with tool_results_placeholder.container():
+                        for result in accumulated_tool_results:
+                            self.ui.display_tool_result_dropdown(result)
+                    
+                elif update["type"] == "token":
+                    # Add token to accumulated response
+                    token = update["token"]
+                    accumulated_response += token
+                    
+                    # Update message display in real-time
+                    message_placeholder.markdown(accumulated_response + "▋")  # Add cursor for visual feedback
                     
                 elif update["type"] == "final":
                     # Extract final results
@@ -115,11 +136,15 @@ class AgenticResearchApp:
                     paper_metadata = research_result.get("paper_metadata", [])
                     step_messages = research_result.get("step_messages", [])
                     
-                    # Display the main response
+                    # Display the final response without cursor
                     message_placeholder.markdown(final_response)
                     
                     # Display context and paper metadata
-                    self.ui.render_context_expander(retrieved_context)
+                    self.ui.render_context_expander(
+                        retrieved_context, 
+                        accumulated_tool_results,
+                        "The assistant analyzed the search results to identify current top-performing YouTubers based on subscriber counts, view metrics, and recent popularity data."
+                    )
                     self.ui.render_paper_metadata(paper_metadata)
                     
                     # Store message in session state
@@ -127,6 +152,7 @@ class AgenticResearchApp:
                         "role": "assistant",
                         "content": final_response,
                         "steps": step_messages,
+                        "tool_results": accumulated_tool_results,
                         "context": retrieved_context,
                         "paper_metadata": paper_metadata
                     })

@@ -32,10 +32,21 @@ AVAILABLE TOOLS:
 
 DECISION GUIDELINES:
 1. For academic/research questions → Use arxiv_search first, then brave_search if needed
-2. For current events/news → Use brave_search
+2. For current events/news/popular topics → Use brave_search + webscraper (multi-tool)
 3. For calculations → Use calculator
 4. For finding previously stored papers → Use pinecone_search
-5. For general knowledge where you're confident → No tools needed
+5. For detailed content from specific URLs → Use webscraper
+6. For general knowledge where you're confident → No tools needed
+
+MULTI-TOOL PATTERNS:
+- Current web info → brave_search THEN webscraper for links found in search results
+- Research topics → arxiv_search THEN brave_search for current info
+- Complex queries → Use multiple tools for comprehensive coverage
+
+WEBSCRAPER USAGE:
+- ALWAYS use after brave_search for current/popular topics to get full content
+- Use when you have specific URLs from search results that need deeper content
+- Use when user provides specific URLs to analyze
 
 MULTI-TOOL STRATEGY:
 - You can use multiple tools in sequence for comprehensive answers
@@ -60,7 +71,12 @@ AVAILABLE TOOLS:
 Think step by step:
 1. What type of information is needed?
 2. Which tool(s) would be most appropriate?
-3. Should multiple tools be used?
+3. Should multiple tools be used for comprehensive coverage?
+
+MULTI-TOOL DECISION RULES:
+- For current web topics (YouTubers, trends, news, popular lists) → USE brave_search + webscraper
+- For research topics → USE arxiv_search + brave_search
+- For URLs found in search results → ALWAYS follow up with webscraper
 
 Respond with ONE of these formats:
 
@@ -69,15 +85,20 @@ TOOL_USE: tool_name
 QUERY: what to search for
 REASONING: why this tool is needed
 
-For multiple tools:
+For multiple tools (PREFERRED for web content):
 MULTI_TOOL_USE: tool1_name,tool2_name
 QUERY1: query for first tool
-QUERY2: query for second tool  
-REASONING: why these tools are needed
+QUERY2: query for second tool (use URLs from first tool results)
+REASONING: why these tools are needed together
 
 For no tools:
 NO_TOOLS_NEEDED: I can answer with existing knowledge
-REASONING: why no tools are needed"""
+REASONING: why no tools are needed
+
+EXAMPLES:
+- "best YouTubers" → MULTI_TOOL_USE: brave_search,webscraper
+- "latest AI research" → MULTI_TOOL_USE: arxiv_search,brave_search
+- "what is Python" → NO_TOOLS_NEEDED (if confident in knowledge)"""
     
     def _build_synthesis_prompt(self) -> str:
         """Build the synthesis prompt."""
@@ -105,7 +126,8 @@ Provide a well-structured, informative response:"""
             "arxiv_search": "Search ArXiv for academic papers and research on AI, ML, physics, math, and other scientific domains",
             "brave_search": "Search the web for current information, news, and general knowledge using Brave Search engine",
             "calculator": "Perform basic mathematical calculations including arithmetic operations",
-            "pinecone_search": "Search the vector database for previously stored research papers and documents"
+            "pinecone_search": "Search the vector database for previously stored research papers and documents",
+            "webscraper": "Extract full text content from web pages given their URLs. Follow up on interesting links from search results."
         }
         
         return "\n".join([

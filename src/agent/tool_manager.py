@@ -8,7 +8,8 @@ from src.tools import (
     ArxivSearchTool,
     BraveSearchTool,
     CalculatorTool,
-    PineconeSearchTool
+    PineconeSearchTool,
+    WebScraperTool
 )
 
 
@@ -27,7 +28,8 @@ class ToolManager:
             ArxivSearchTool,
             BraveSearchTool,
             CalculatorTool,
-            PineconeSearchTool
+            PineconeSearchTool,
+            WebScraperTool
         ]
         
         for tool_class in tool_classes:
@@ -73,6 +75,9 @@ class ToolManager:
             # Execute tool with appropriate parameters
             if tool_name == "calculator":
                 result = tool.execute(query)
+            elif tool_name == "webscraper":
+                max_chars = kwargs.get("max_chars", 3000)
+                result = tool.execute(query, max_chars=max_chars)
             else:
                 max_results = kwargs.get("max_results", 5)
                 result = tool.execute(query, max_results=max_results)

@@ -172,6 +172,11 @@ class ResearchAgent:
             tools = tool_decision.get("tools", [])
             queries = tool_decision.get("queries", {})
             
+            # Special handling for brave_search + webscraper pattern
+            if "brave_search" in tools and "webscraper" in tools:
+                return self._execute_brave_webscraper_chain(tools, queries)
+            
+            # Default multi-tool execution
             for tool_name in tools:
                 if tool_name in queries and self.tool_manager.is_tool_available(tool_name):
                     query = queries[tool_name]
@@ -187,6 +192,100 @@ class ResearchAgent:
         
         return tool_results
     
+    def _execute_brave_webscraper_chain(self, tools: List[str], queries: Dict[str, str]) -> List[Dict[str, Any]]:
+        """Execute brave_search followed by webscraper using the found URLs.
+        
+        Args:
+            tools: List of tool names
+            queries: Dictionary of queries for each tool
+            
+        Returns:
+            List of tool results
+        """
+        tool_results = []
+        
+        # Step 1: Execute brave_search first
+        if "brave_search" in queries and self.tool_manager.is_tool_available("brave_search"):
+            brave_query = queries["brave_search"]
+            brave_result = self._execute_single_tool("brave_search", brave_query)
+            tool_results.append(brave_result)
+            
+            # Step 2: Extract URLs from brave_search results for webscraper
+            if brave_result.get("success", False) and self.tool_manager.is_tool_available("webscraper"):
+                urls_to_scrape = self._extract_urls_from_brave_results(brave_result)
+                
+                if urls_to_scrape:
+                    # Use the top 2-3 URLs for scraping
+                    top_urls = urls_to_scrape[:3]
+                    urls_string = ", ".join(top_urls)
+                    
+                    self.add_step_message("searching", f"🔗 Following up with webscraper on {len(top_urls)} URLs from search results...")
+                    webscraper_result = self._execute_single_tool("webscraper", urls_string)
+                    tool_results.append(webscraper_result)
+                else:
+                    self.add_step_message("checking", "⚠️ No suitable URLs found in search results for scraping")
+        
+        # Execute any other tools in the list
+        for tool_name in tools:
+            if tool_name not in ["brave_search", "webscraper"] and tool_name in queries:
+                if self.tool_manager.is_tool_available(tool_name):
+                    query = queries[tool_name]
+                    result = self._execute_single_tool(tool_name, query)
+                    tool_results.append(result)
+        
+        return tool_results
+    
+    def _extract_urls_from_brave_results(self, brave_result: Dict[str, Any]) -> List[str]:
+        """Extract URLs from brave search results.
+        
+        Args:
+            brave_result: Result dictionary from brave_search tool
+            
+        Returns:
+            List of URLs suitable for scraping
+        """
+        urls = []
+        
+        # Get URLs from results
+        results = brave_result.get("results", [])
+        for result in results:
+            url = result.get("url", "")
+            
+            # Clean up URL (remove quotes, commas, and other artifacts)
+            if url:
+                import re
+                url = url.strip().strip('"').strip("'").strip(',')
+                url = re.sub(r'["\',]+$', '', url)
+                
+                if url.startswith("http"):
+                    # Filter out certain URL types that might not be good for scraping
+                    skip_domains = ["youtube.com", "youtu.be", "twitter.com", "t.co", "facebook.com", "instagram.com"]
+                    if not any(domain in url.lower() for domain in skip_domains):
+                        urls.append(url)
+        
+        # Also try to get URLs from metadata
+        metadata = brave_result.get("metadata", [])
+        for meta in metadata:
+            url = meta.get("url", "")
+            
+            # Clean up URL
+            if url:
+                import re
+                url = url.strip().strip('"').strip("'").strip(',')
+                url = re.sub(r'["\',]+$', '', url)
+                
+                if url.startswith("http") and url not in urls:
+                    skip_domains = ["youtube.com", "youtu.be", "twitter.com", "t.co", "facebook.com", "instagram.com"]
+                    if not any(domain in url.lower() for domain in skip_domains):
+                        urls.append(url)
+        
+        # Debug: print extracted URLs
+        print(f"[ResearchAgent] Extracted {len(urls)} clean URLs for scraping:")
+        for i, url in enumerate(urls[:5], 1):
+            print(f"[ResearchAgent]   {i}. {url}")
+        
+        return urls
+    
     def _execute_single_tool(self, tool_name: str, query: str) -> Dict[str, Any]:
         """Execute a single tool and log the result."""
         self.add_step_message("searching", f"🔍 Executing {tool_name}: {query}")
@@ -196,6 +295,10 @@ class ResearchAgent:
         if result.get("success", False):
             if tool_name == "calculator":
                 self.add_step_message("found", f"✅ Calculation completed: {result.get('result')}")
+            elif tool_name == "webscraper":
+                scraped_count = len([r for r in result.get("results", []) if r])
+                total_count = len(result.get("metadata", []))
+                self.add_step_message("found", f"✅ Scraped {scraped_count}/{total_count} URLs successfully")
             else:
                 count = len(result.get("results", []))
                 self.add_step_message("found", f"✅ Found {count} results from {tool_name}")
@@ -223,6 +326,36 @@ class ResearchAgent:
         self.add_step_message("completed", "✅ Response synthesized successfully!")
         
         return response.content if hasattr(response, 'content') else str(response)
+    
+    def _synthesize_response_stream(self, user_question: str, tool_results: List[Dict[str, Any]]):
+        """Synthesize final response using tool results with streaming support.
+        
+        Args:
+            user_question: The user's research question
+            tool_results: Results from executed tools
+            
+        Yields:
+            String tokens from the streaming response
+        """
+        self.add_step_message("synthesizing", "🧠 Synthesizing comprehensive response from all sources...")
+        
+        tool_results_text = self._format_tool_results(tool_results)
+        
+        prompt = ChatPromptTemplate.from_template(
+            self.prompt_manager.get_synthesis_prompt()
+        )
+        chain = prompt | self.llm
+        
+        # Use streaming invoke
+        for chunk in chain.stream({
+            "user_question": user_question,
+            "tool_results": tool_results_text
+        }):
+            content = chunk.content if hasattr(chunk, 'content') else str(chunk)
+            if content:
+                yield content
+        
+        self.add_step_message("completed", "✅ Response synthesized successfully!")
     
     def _format_tool_results(self, tool_results: List[Dict[str, Any]]) -> str:
         """Format tool results for the synthesis prompt."""
@@ -360,6 +493,10 @@ class ResearchAgent:
                 for step in step_queue:
                     yield {"type": "step", "step": step}
                 step_queue.clear()
+                
+                # Yield tool results for UI display
+                for tool_result in tool_results:
+                    yield {"type": "tool_result", "result": tool_result}
             else:
                 reasoning = tool_decision.get("reasoning", "")
                 self.add_step_message("completed", f"✅ Using existing knowledge: {reasoning}")
@@ -368,18 +505,28 @@ class ResearchAgent:
                     yield {"type": "step", "step": step}
                 step_queue.clear()
             
-            # Step 3: Synthesize final response
-            final_response = self._synthesize_response(user_question, tool_results)
-            # Yield any collected steps
+            # Step 3: Synthesize final response with streaming
+            # Yield any collected steps before starting synthesis
             for step in step_queue:
                 yield {"type": "step", "step": step}
             step_queue.clear()
             
-            # Yield final result
+            # Stream the final response synthesis
+            accumulated_response = ""
+            for token in self._synthesize_response_stream(user_question, tool_results):
+                accumulated_response += token
+                yield {"type": "token", "token": token}
+            
+            # Yield any final steps
+            for step in step_queue:
+                yield {"type": "step", "step": step}
+            step_queue.clear()
+            
+            # Yield final result with complete response
             yield {
                 "type": "final",
                 "result": {
-                    "final_response": final_response,
+                    "final_response": accumulated_response,
                     "step_messages": self.get_step_messages(),
                     "tool_results": tool_results,
                     "paper_metadata": self._extract_metadata_from_results(tool_results),

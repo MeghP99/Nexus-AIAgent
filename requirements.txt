@@ -5,9 +5,11 @@ langchain-community
 langgraph
 python-dotenv
 arxiv
-pinecone-client>=3.0.0
+pinecone-client
 streamlit
 nest-asyncio
 langchain-text-splitters
-PyMuPDF==1.23.28
+PyMuPDF
+requests
+beautifulsoup4
 
