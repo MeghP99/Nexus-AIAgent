@@ -171,9 +171,6 @@ CONFIDENCE_THRESHOLD=0.8
    🧮 Calculator → ((2.5)^(1/3) - 1) * 100 = 35.72%
    📊 Result → 35.72% CAGR with explanation
 ```
-```
-
----
 
 
 ## 🚀 **Future Enhancements**
