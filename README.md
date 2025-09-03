@@ -10,7 +10,7 @@
 
 ## 🌟 **Project Highlights**
 
-This project showcases advanced **AI agent architecture** with sophisticated **tool selection**, **multi-step reasoning**, and **intelligent synthesis** capabilities. Built with modern software engineering practices and production-ready code architecture.
+This project showcases advanced **AI agent architecture** with sophisticated **tool selection**, **multi-step reasoning**, and **intelligent synthesis** capabilities. 
 
 ### 🎯 **Key Achievements**
 
@@ -226,9 +226,3 @@ This project demonstrates expertise in:
 - **🔧 Tool Integration**: Combining multiple APIs and services seamlessly
 - **🎨 User Experience**: Creating intuitive interfaces for complex functionality
 - **📊 Data Engineering**: Managing vector databases and information retrieval
-
----
-
-## 📝 **License**
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
